@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Processing - Fawry</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="callback-page">
+    <div class="container">
+        <div id="loading">
+            <div class="spinner"></div>
+            <h1>Processing ...</h1>
+            <p class="message">Please wait while we process your request.</p>
+        </div>
+
+        <div id="result" class="result">
+            <div id="icon" class="icon"></div>
+            <h1 id="resultTitle"></h1>
+            <p class="message" id="resultMessage"></p>
+            <div id="resultInfo" class="result-info"></div>
+            <button type="button" onclick="backToPayment()">Back to Payment</button>
+        </div>
+    </div>
+
+    <script>
+        if (window.location.protocol === 'file:') {
+            document.getElementById('loading').innerHTML =
+                '<h1>Error</h1><p>This page must be served via HTTP server, not opened directly.</p>';
+        }
+    </script>
+    <script src="node_modules/fawry-softpos-web-sdk/dist/fawry-softpos-sdk.js"></script>
+    <script src="callback.js"></script>
+</body>
+</html>

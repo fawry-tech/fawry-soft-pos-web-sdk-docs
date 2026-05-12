@@ -1,0 +1,4 @@
+node_modules/
+callback-response.log
+npm-debug.log*
+fawry-softpos-web-sdk-1.0.0

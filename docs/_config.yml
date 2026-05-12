@@ -1,0 +1,34 @@
+title: Fawry SoftPOS Web SDK
+description: Integration guide for Fawry SoftPOS Web Payment SDK
+baseurl: "/fawry-soft-pos-web-sdk"
+url: "https://eslamwael74.github.io"
+
+theme: just-the-docs
+
+color_scheme: light
+
+search_enabled: true
+
+heading_anchors: true
+
+back_to_top: true
+back_to_top_text: "Back to top"
+
+aux_links:
+  "View on GitHub":
+    - "https://github.com/eslamwael74/fawry-soft-pos-web-sdk"
+
+footer_content: "&copy; Fawry Payment Solutions. All rights reserved."
+
+nav_sort: case_insensitive
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: "default"
+
+exclude:
+  - node_modules/
+  - vendor/
+  - Gemfile.lock

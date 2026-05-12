@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fawry SoftPOS SDK Example</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Fawry SoftPOS TapNPay App</h1>
+        <p class="subtitle">Web Payment SDK Integration Test</p>
+
+        <form id="requestForm">
+            <div class="section">
+                <div class="section-title">Operation Type</div>
+                <div class="radio-grid">
+                    <div class="radio-option">
+                        <input type="radio" name="operationType" id="op_card_sale" value="card_sale" checked>
+                        <label for="op_card_sale"><span class="op-icon">💳</span>Card Sale</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" name="operationType" id="op_card_refund" value="card_refund">
+                        <label for="op_card_refund"><span class="op-icon">↩️</span>Card Refund</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" name="operationType" id="op_card_void" value="card_void">
+                        <label for="op_card_void"><span class="op-icon">🚫</span>Card Void</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" name="operationType" id="op_inquiry" value="inquiry">
+                        <label for="op_inquiry"><span class="op-icon">🔍</span>Inquiry</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section" id="sec_payment">
+                <div class="section-title">Payment Details</div>
+                <div class="form-row" id="row_amount">
+                    <div class="form-group">
+                        <label for="amount">Amount <span class="required">*</span></label>
+                        <input type="number" id="amount" placeholder="0.00" min="0.01" step="0.01">
+                    </div>
+                    <div class="form-group" id="grp_currency">
+                        <label for="currency">Currency</label>
+                        <input type="text" id="currency" placeholder="EGP" value="EGP">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" id="grp_orderId">
+                        <label for="orderId">Order ID <span class="optional">(optional)</span></label>
+                        <input type="text" id="orderId" placeholder="ORDER-12345">
+                    </div>
+                    <div class="form-group">
+                        <label for="btc">Bill Type Code <span class="required">*</span></label>
+                        <input type="number" id="btc" placeholder="99901" value="99901">
+                        <div class="help-text">Default: 99901</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section hidden" id="sec_reference">
+                <div class="section-title">Transaction Reference</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="transactionFCRN">Reference Number (FCRN) <span class="required">*</span></label>
+                        <input type="text" id="transactionFCRN" placeholder="REF-ABC123">
+                    </div>
+                </div>
+            </div>
+
+            <div class="section hidden" id="sec_inquiry">
+                <div class="section-title">Inquiry Parameters</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="idType">ID Type <span class="required">*</span></label>
+                        <select id="idType">
+                            <option value="FCRN">FCRN</option>
+                            <option value="CORRUID">Correlation UID</option>
+                            <option value="ORDER_ID">Order ID</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="transactionId">Transaction ID <span class="optional">(optional)</span></label>
+                        <input type="text" id="transactionId" placeholder="REF-ABC123">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="fromDate">From Date <span class="optional">(optional)</span></label>
+                        <input type="text" id="fromDate" placeholder="2025-01-01">
+                    </div>
+                    <div class="form-group">
+                        <label for="toDate">To Date <span class="optional">(optional)</span></label>
+                        <input type="text" id="toDate" placeholder="2025-12-31">
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Merchant Credentials</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="partnerCode">Partner Code <span class="required">*</span></label>
+                        <input type="text" id="partnerCode" placeholder="100" value="100">
+                    </div>
+                    <div class="form-group">
+                        <label for="merchantAccountNumber">Account Number</label>
+                        <input type="text" id="merchantAccountNumber" placeholder="102551" value="102551">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="merchantToken">Merchant Token <span class="optional">(local demo only)</span></label>
+                        <input type="text" id="merchantToken" placeholder="Leave empty if your backend reads it from env">
+                        <div class="help-text">Production integrations should keep this token on the backend.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section" id="sec_receipt">
+                <div class="section-title">Receipt Options</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="printReceipt">
+                            <label for="printReceipt">Print Receipt</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="displayInvoice">
+                            <label for="displayInvoice">Display Invoice</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Backend Signature API</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="signatureApiUrl">Signature API URL <span class="required">*</span></label>
+                        <input type="url" id="signatureApiUrl" placeholder="http://localhost:3001/api/generate-signature">
+                        <div class="help-text">This example calls the backend directly. Your backend must allow CORS.</div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" id="submitButton">Pay Now</button>
+        </form>
+
+        <div id="status" class="status"></div>
+
+        <div class="info-box">
+            <strong>How it works:</strong><br>
+            1. Choose an operation type above<br>
+            2. Fill in the required fields<br>
+            3. Click the action button to open TapNPay app<br>
+            4. Confirm in the app &rarr; redirected back with result
+        </div>
+    </div>
+
+    <script>
+        if (window.location.protocol === 'file:') {
+            document.addEventListener('DOMContentLoaded', function() {
+                var s = document.getElementById('status');
+                if (s) {
+                    s.textContent = 'Error: Serve via HTTP server, not file://. Run: npm start';
+                    s.className = 'status show error';
+                }
+            });
+        }
+    </script>
+    <script src="node_modules/fawry-softpos-web-sdk/dist/fawry-softpos-sdk.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
