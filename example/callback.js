@@ -13,14 +13,44 @@
     var resultInfo = document.getElementById('resultInfo');
 
     window.backToPayment = function backToPayment() {
-        window.close();
+        var focusedOpener = focusOriginalPaymentWindow();
+        if (focusedOpener) {
+            window.close();
+        }
         setTimeout(function() {
             if (!window.closed) {
-                var baseUrl = window.location.origin + window.location.pathname.replace(/\/callback\.html$/, '/index.html');
-                window.location.replace(baseUrl);
+                window.location.replace(getPaymentPageUrl());
             }
         }, 150);
     };
+
+    function getPaymentPageUrl() {
+        return window.location.origin + window.location.pathname.replace(/\/callback\.html$/, '/index.html');
+    }
+
+    function buildReturnUrl(result) {
+        var target = result && result._callbackReturnUrl ? result._callbackReturnUrl : getPaymentPageUrl();
+        try {
+            var url = new URL(target, window.location.origin);
+            var sid = result && result.sid ? result.sid : new URLSearchParams(window.location.search).get('sId');
+            if (sid) url.searchParams.set('fawrySid', sid);
+            return url.toString();
+        } catch (error) {
+            return getPaymentPageUrl();
+        }
+    }
+
+    function focusOriginalPaymentWindow() {
+        try {
+            if (window.opener && !window.opener.closed && typeof window.opener.focus === 'function') {
+                window.opener.focus();
+                return true;
+            }
+        } catch (error) {
+            console.log('Could not focus opener window:', error);
+        }
+        return false;
+    }
 
     function getFlowFromUrl() {
         var params = new URLSearchParams(window.location.search);
@@ -170,7 +200,7 @@
             }
 
             var isSuccess = result.isSuccess ? result.isSuccess() : false;
-            if (result._storedForCrossTab) {
+            if (result._storedForCrossTab || result._callbackReturnUrl) {
                 var briefTitle = getBriefResultTitle(result, isSuccess);
                 loadingDiv.innerHTML =
                     '<div class="icon ' + (isSuccess ? 'success' : 'error') + '">' + (isSuccess ? '✓' : '✗') + '</div>' +
@@ -178,21 +208,29 @@
                     '<p class="message">Returning to payment page...</p>';
 
                 setTimeout(function() {
-                    try {
-                        if (window.opener || window.history.length <= 2) {
+                    if (result._callbackReturnUrl) {
+                        window.location.replace(buildReturnUrl(result));
+                        return;
+                    }
+
+                    var focusedOpener = focusOriginalPaymentWindow();
+                    if (focusedOpener) {
+                        try {
                             window.close();
+                        } catch (error) {
+                            console.log('Could not close window:', error);
                         }
-                    } catch (error) {
-                        console.log('Could not close window:', error);
+                    } else {
+                        window.location.replace(getPaymentPageUrl());
+                        return;
                     }
 
                     setTimeout(function() {
-                        if (!document.hidden && document.hasFocus !== false) {
-                            var baseUrl = window.location.origin + window.location.pathname.replace(/\/callback\.html$/, '/index.html');
-                            window.location.replace(baseUrl);
+                        if (!document.hidden && (typeof document.hasFocus !== 'function' || document.hasFocus())) {
+                            window.location.replace(getPaymentPageUrl());
                         }
                     }, 100);
-                }, 3000);
+                }, result._callbackReturnUrl ? 300 : 3000);
             } else {
                 showResult(result, isSuccess);
             }

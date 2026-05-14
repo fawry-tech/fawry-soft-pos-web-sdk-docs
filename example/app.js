@@ -17,6 +17,23 @@
     var statusDiv = document.getElementById('status');
     var submitBtn = document.getElementById('submitButton');
     var signatureApiInput = document.getElementById('signatureApiUrl');
+    var PAYMENT_PAGE_STATE_KEY = 'fawry_example_payment_page_state';
+    var FORM_FIELD_IDS = [
+        'amount',
+        'currency',
+        'orderId',
+        'btc',
+        'transactionFCRN',
+        'idType',
+        'transactionId',
+        'fromDate',
+        'toDate',
+        'partnerCode',
+        'merchantAccountNumber',
+        'merchantToken',
+        'signatureApiUrl',
+    ];
+    var CHECKBOX_FIELD_IDS = ['printReceipt', 'displayInvoice'];
 
     if (signatureApiInput) {
         signatureApiInput.value = localStorage.getItem('fawry_example_signature_api_url') ||
@@ -97,6 +114,82 @@
 
     function getSelectedOp() {
         return document.querySelector('input[name="operationType"]:checked').value;
+    }
+
+    function getPaymentPageState(sid, op) {
+        var fields = {};
+        FORM_FIELD_IDS.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) fields[id] = el.value;
+        });
+
+        var checkboxes = {};
+        CHECKBOX_FIELD_IDS.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) checkboxes[id] = el.checked;
+        });
+
+        return {
+            sid: sid,
+            op: op,
+            fields: fields,
+            checkboxes: checkboxes,
+            savedAt: Date.now(),
+        };
+    }
+
+    function savePaymentPageState(sid, op) {
+        try {
+            sessionStorage.setItem(PAYMENT_PAGE_STATE_KEY, JSON.stringify(getPaymentPageState(sid, op)));
+        } catch (error) {
+            console.warn('Could not save payment page state:', error);
+        }
+    }
+
+    function readPaymentPageState() {
+        try {
+            var raw = sessionStorage.getItem(PAYMENT_PAGE_STATE_KEY);
+            return raw ? JSON.parse(raw) : null;
+        } catch (error) {
+            console.warn('Could not read payment page state:', error);
+            return null;
+        }
+    }
+
+    function restorePaymentPageState(state) {
+        if (!state) return null;
+
+        var op = state.op || 'card_sale';
+        var opInput = document.querySelector('input[name="operationType"][value="' + op + '"]');
+        if (opInput) opInput.checked = true;
+
+        Object.keys(state.fields || {}).forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.value = state.fields[id];
+        });
+        Object.keys(state.checkboxes || {}).forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.checked = Boolean(state.checkboxes[id]);
+        });
+
+        updateUI();
+        return op;
+    }
+
+    function clearPaymentPageState() {
+        try {
+            sessionStorage.removeItem(PAYMENT_PAGE_STATE_KEY);
+        } catch (error) {
+            console.warn('Could not clear payment page state:', error);
+        }
+    }
+
+    function createResultFromStoredData(data) {
+        var messageCode = data && data.header ? data.header.messageCode : '';
+        if (messageCode === 'refund' && FawrySDK.RefundResult) return new FawrySDK.RefundResult(data);
+        if (messageCode === 'void' && FawrySDK.VoidResult) return new FawrySDK.VoidResult(data);
+        if (messageCode === 'inquiry' && FawrySDK.InquiryResult) return new FawrySDK.InquiryResult(data);
+        return new FawrySDK.PaymentResult(data);
     }
 
     function getSignatureApiUrl() {
@@ -228,6 +321,7 @@
 
         if (merchantToken) builder.setMerchantToken(merchantToken);
 
+        savePaymentPageState(sid, op);
         return builder.send();
     }
 
@@ -247,6 +341,42 @@
         if (body.amount != null) msg += 'Amount: ' + body.amount + ' ' + (body.currency || 'EGP');
 
         return msg;
+    }
+
+    function showPaymentResult(op, result) {
+        if (result.isSuccess && result.isSuccess()) {
+            showStatus(successMessage(op, result), 'success');
+            return;
+        }
+
+        var status = result.header && result.header.status ? result.header.status : {};
+        showStatus('Failed: ' + (status.hostStatusDesc || status.statusDesc || 'Payment failed'), 'error');
+    }
+
+    function consumeReturnedPaymentResult() {
+        var params = new URLSearchParams(window.location.search);
+        var sid = params.get('fawrySid');
+        if (!sid) return false;
+
+        var restoredOp = restorePaymentPageState(readPaymentPageState()) || getSelectedOp();
+        var resultKey = 'fawry_result_' + sid;
+        var resultData = localStorage.getItem(resultKey);
+        if (!resultData) {
+            showStatus('Returned from SoftPOS, but no callback result was found for session ' + sid, 'error');
+            return true;
+        }
+
+        try {
+            var result = createResultFromStoredData(JSON.parse(resultData));
+            localStorage.removeItem(resultKey);
+            clearPaymentPageState();
+            showPaymentResult(restoredOp, result);
+            window.history.replaceState({}, document.title, window.location.pathname);
+            return true;
+        } catch (error) {
+            showStatus('Failed to restore callback result: ' + error.message, 'error');
+            return true;
+        }
     }
 
     document.querySelectorAll('input[name="operationType"]').forEach(function(radio) {
@@ -274,10 +404,12 @@
         try {
             showStatus('Opening SoftPOS app...', 'loading');
             var result = await executeRequest(op);
-            showStatus(successMessage(op, result), 'success');
+            clearPaymentPageState();
+            showPaymentResult(op, result);
             submitBtn.textContent = originalLabel;
             console.log('Result:', result);
         } catch (error) {
+            clearPaymentPageState();
             showStatus('Failed: ' + error.message, 'error');
             submitBtn.textContent = originalLabel;
         } finally {
@@ -288,6 +420,8 @@
     var urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('sid') || urlParams.get('sId')) {
         window.location.href = 'callback.html' + window.location.search;
+    } else {
+        consumeReturnedPaymentResult();
     }
 
     updateUI();
