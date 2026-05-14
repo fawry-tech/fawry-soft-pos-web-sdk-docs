@@ -24,6 +24,8 @@
     </div>
 
     <script>
+        window.FAWRY_SDK_DISABLE_AUTO_CALLBACK = true;
+
         if (window.location.protocol === 'file:') {
             document.getElementById('loading').innerHTML =
                 '<h1>Error</h1><p>This page must be served via HTTP server, not opened directly.</p>';
