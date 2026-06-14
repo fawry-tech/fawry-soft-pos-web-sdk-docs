@@ -6,7 +6,7 @@ has_children: true
 
 # Operations
 
-The SDK supports five operations through the SoftPOS app. Each operation uses a builder pattern: configure the request with setter methods, then call `.send()` to execute it. You must set **`setBtc`** on every flow (see [API Reference]({% link api-reference.md %}#common-methods-all-builders)). **`setPrintReceipt`** and **`setDisplayInvoice`** are optional and default to **`false`**. For card sale and refund, pass **amount as a string** matching your signature request (see [Card Sale]({% link operations/sale.md %})).
+The SDK supports five operations through the SoftPOS app. Each operation uses a builder pattern: configure the request with setter methods, then call `.send()` to execute it. You must set **`setMerchantToken`** and **`setBtc`** on every flow (see [API Reference]({% link api-reference.md %}#common-methods-all-builders)). **`setPrintReceipt`** and **`setDisplayInvoice`** are optional and default to **`false`**. For card sale and refund, pass **amount as a string** matching your signature request (see [Card Sale]({% link operations/sale.md %})).
 
 | Operation | Builder | Description |
 |-----------|---------|-------------|

@@ -8,7 +8,7 @@ nav_order: 6
 The SDK requires a **server-side endpoint** to generate payment signatures. Signatures ensure that payment requests are authentic and have not been tampered with.
 
 {: .warning }
-> Never generate signatures on the client side. The merchant token must remain secret on your backend.
+> Never generate signatures on the client side. Keep signature generation on your backend; if your TapNPay integration requires the merchant token in the SDK payload, provide it to the builder through your approved client configuration flow and pass the same value to your signature endpoint.
 
 ---
 
@@ -29,7 +29,7 @@ signature = part1 + "///" + part2
 | `amount` | Payment amount as string (e.g., `"100.00"`) |
 | `referenceNumber` | Operation-specific reference field |
 | `orderIdOrNull` | `orderId` when present, otherwise the literal string `"null"` |
-| `merchantToken` | Your secret merchant token (server-side only) |
+| `merchantToken` | Merchant token used in signature part 2; pass the same value to the SDK builder with `setMerchantToken()` |
 | `accountNumber` | Your merchant account number |
 
 **Why `amount` must be a string:** The two hash inputs are built by **concatenating** `clientTimeStamp`, `sid`, `amount`, and `referenceNumber` as text. The signature only matches if the **exact same character sequence** is used on the server as in the SDK. Numeric types can change how a value is rendered (for example `100` versus `100.00`, or different fractional precision), which would change the hash. Passing `amount` as a **string** end-to-end keeps one fixed representation—including the decimal places and padding you intend—so the backend signature and the client payment request stay aligned.
@@ -325,6 +325,7 @@ Client (Browser)                          Your Backend
 8. builder.setSignature(signature)
          .setSid(sid)
          .setClientTimeStamp(ts)
+         .setMerchantToken(merchantToken)
          ...
          .send()
 ```

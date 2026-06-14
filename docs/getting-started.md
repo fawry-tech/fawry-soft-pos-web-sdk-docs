@@ -97,8 +97,10 @@ Use the **same string** for `amount` in your signature request and in `setAmount
 var sid = FawrySDK.generateSessionId();
 var clientTimeStamp = Date.now();
 var amountStr = '100.00';
+var merchantToken = 'YOUR_MERCHANT_TOKEN_FROM_BACKEND_CONFIG';
 
-// 2. Get a signature from your backend
+// 2. Get a signature from your backend.
+// Do not send merchantToken here; the backend should read it from its own config/env.
 var response = await fetch('/api/generate-signature', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -125,6 +127,7 @@ var result = await FawrySDK.requestSale(FawrySDK.PaymentOptionType.CARD)
     .setClientTimeStamp(clientTimeStamp)
     .setPartnerCode('YOUR_PARTNER_CODE')
     .setMerchantAccountNumber('YOUR_ACCOUNT_NUMBER')
+    .setMerchantToken(merchantToken)
     .setOrderId('ORDER-001')
     .setBtc(99901)
     .send();

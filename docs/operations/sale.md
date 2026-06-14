@@ -23,8 +23,10 @@ Accept a card payment through the SoftPOS app.
 var sid = FawrySDK.generateSessionId();
 var clientTimeStamp = Date.now();
 var amountStr = '150.00';
+var merchantToken = 'YOUR_MERCHANT_TOKEN_FROM_BACKEND_CONFIG';
 
-// 2. Get signature from your backend
+// 2. Get signature from your backend.
+// Do not send merchantToken here; the backend should read it from its own config/env.
 var sigResponse = await fetch('/api/generate-signature', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -49,6 +51,7 @@ try {
         .setClientTimeStamp(clientTimeStamp)
         .setPartnerCode('YOUR_PARTNER_CODE')
         .setMerchantAccountNumber('YOUR_ACCOUNT_NUMBER')
+        .setMerchantToken(merchantToken)
         .setOrderId('ORD-12345')
         .setBtc(99901)
         .send();
@@ -67,6 +70,8 @@ try {
 ## Full Example with All Options
 
 ```javascript
+var merchantToken = 'YOUR_MERCHANT_TOKEN_FROM_BACKEND_CONFIG';
+
 var result = await FawrySDK.requestSale(FawrySDK.PaymentOptionType.CARD)
     // Required
     .setAmount('250.00')
@@ -76,6 +81,7 @@ var result = await FawrySDK.requestSale(FawrySDK.PaymentOptionType.CARD)
     .setClientTimeStamp(clientTimeStamp)
     .setPartnerCode('100')
     .setMerchantAccountNumber('ACCT-001')
+    .setMerchantToken(merchantToken)
     .setBtc(99901)
 
     // Optional (printReceipt / displayInvoice default to false if omitted)
@@ -99,6 +105,7 @@ var result = await FawrySDK.requestSale(FawrySDK.PaymentOptionType.CARD)
 | Timestamp | `setClientTimeStamp()` | `Date.now()` |
 | Partner Code | `setPartnerCode()` | Your Fawry partner code |
 | Account Number | `setMerchantAccountNumber()` | Your merchant account number |
+| Merchant Token | `setMerchantToken()` | Your merchant token, included in the TapNPay payload |
 
 **Optional:** `setCurrency('EGP')` — if you omit it, currency defaults to **`EGP`**.
 

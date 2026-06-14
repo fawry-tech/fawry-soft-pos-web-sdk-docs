@@ -22,8 +22,10 @@ Refund a previously completed card transaction.
 var sid = FawrySDK.generateSessionId();
 var clientTimeStamp = Date.now();
 var amountStr = '150.00';
+var merchantToken = 'YOUR_MERCHANT_TOKEN_FROM_BACKEND_CONFIG';
 
-// Get signature from your backend (amount is required for refund signature)
+// Get signature from your backend (amount is required for refund signature).
+// Do not send merchantToken here; the backend should read it from its own config/env.
 var sigResponse = await fetch('/api/generate-signature', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -49,6 +51,7 @@ try {
         .setClientTimeStamp(clientTimeStamp)
         .setPartnerCode('YOUR_PARTNER_CODE')
         .setMerchantAccountNumber('YOUR_ACCOUNT_NUMBER')
+        .setMerchantToken(merchantToken)
         .setBtc(99902)
         .send();
 
@@ -70,7 +73,7 @@ try {
 | Transaction FCRN | `setTransactionFCRN()` | No | FCRN of the original transaction |
 | Order ID | `setOrderId()` | No | Order/reference ID |
 
-Plus all [common builder methods]({% link api-reference.md %}#common-methods-all-builders) (signature, sid, timestamp, `setBtc`, optional `setPrintReceipt` / `setDisplayInvoice` — default `false`, etc.).
+Plus all [common builder methods]({% link api-reference.md %}#common-methods-all-builders) (signature, sid, timestamp, `setMerchantToken`, `setBtc`, optional `setPrintReceipt` / `setDisplayInvoice` — default `false`, etc.).
 
 ---
 

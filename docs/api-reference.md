@@ -155,7 +155,7 @@ These methods are available on every builder:
 | `.setMerchantAccountNumber(value)` | `string` | **Yes** | Your merchant account number |
 | `.setCallbackUrl(value)` | `string` | No | Custom callback URL (defaults to `{origin}/callback.html`) |
 | `.setAccountNumber(value)` | `string` | No | Alternative to `setMerchantAccountNumber` |
-| `.setMerchantToken(value)` | `string` | No | Merchant token |
+| `.setMerchantToken(value)` | `string` | **Yes** | Merchant token included in the TapNPay payload |
 | `.setBtc(value)` | `number` | **Yes** | Business transaction code (from Fawry; no SDK default) |
 | `.setPrintReceipt(value)` | `boolean` | No | Print receipt on terminal (default: `false`) |
 | `.setDisplayInvoice(value)` | `boolean` | No | Display invoice on terminal (default: `false`) |
@@ -167,6 +167,8 @@ Backend signature generation must use the same operation-specific values you set
 - refund uses `amount`, `transactionFCRN`, and optional `orderId`
 - void uses `transactionFCRN` and optional `orderId`
 - inquiry uses `transactionId` and `idType`
+
+Also pass the merchant token to the SDK builder with `.setMerchantToken(...)` so the TapNPay payload includes the same merchant token used for the signature.
 
 ---
 

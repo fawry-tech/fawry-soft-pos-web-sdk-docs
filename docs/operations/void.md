@@ -19,8 +19,10 @@ Void (cancel) a recently completed card transaction. Voids are typically availab
 ```javascript
 var sid = FawrySDK.generateSessionId();
 var clientTimeStamp = Date.now();
+var merchantToken = 'YOUR_MERCHANT_TOKEN_FROM_BACKEND_CONFIG';
 
-// Get signature from your backend (no amount needed for void)
+// Get signature from your backend (no amount needed for void).
+// Do not send merchantToken here; the backend should read it from its own config/env.
 var sigResponse = await fetch('/api/generate-signature', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -44,6 +46,7 @@ try {
         .setClientTimeStamp(clientTimeStamp)
         .setPartnerCode('YOUR_PARTNER_CODE')
         .setMerchantAccountNumber('YOUR_ACCOUNT_NUMBER')
+        .setMerchantToken(merchantToken)
         .setBtc(99901)
         .send();
 
@@ -64,7 +67,7 @@ try {
 | Transaction FCRN | `setTransactionFCRN()` | No | FCRN of the transaction to void |
 | Order ID | `setOrderId()` | No | Order/reference ID |
 
-Plus all [common builder methods]({% link api-reference.md %}#common-methods-all-builders) (signature, sid, timestamp, `setBtc`, optional `setPrintReceipt` / `setDisplayInvoice` — default `false`, etc.).
+Plus all [common builder methods]({% link api-reference.md %}#common-methods-all-builders) (signature, sid, timestamp, `setMerchantToken`, `setBtc`, optional `setPrintReceipt` / `setDisplayInvoice` — default `false`, etc.).
 
 When generating the signature on your backend, pass the same `transactionFCRN` and `orderId` values used in the builder request.
 
