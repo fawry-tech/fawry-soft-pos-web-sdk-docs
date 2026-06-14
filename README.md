@@ -2,7 +2,7 @@
 
 Integrate card payments into your website using the Fawry SoftPOS Android app. The Web SDK handles the communication between your website and the SoftPOS app via deep links, providing a seamless payment experience on Android devices.
 
-**[View Full Documentation](https://eslamwael74.github.io/fawry-soft-pos-web-sdk-docs/)**
+**[View Full Documentation](https://fawry-tech.github.io/fawry-soft-pos-web-sdk-docs/)**
 
 ## How It Works
 
