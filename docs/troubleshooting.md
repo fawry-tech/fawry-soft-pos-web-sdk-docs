@@ -38,13 +38,13 @@ Common issues and their solutions.
 2. **Verify the built file exists:**
 
    ```bash
-   ls node_modules/fawry-softpos-sdk/dist/fawry-softpos-sdk.js
+   ls node_modules/fawry-softpos-web-sdk/dist/fawry-softpos-sdk.js
    ```
 
 3. **Verify the script path** in your HTML:
 
    ```html
-   <script src="node_modules/fawry-softpos-sdk/dist/fawry-softpos-sdk.js"></script>
+   <script src="node_modules/fawry-softpos-web-sdk/dist/fawry-softpos-sdk.js"></script>
    ```
 
 4. **Check the browser console** for 404 errors on the script URL.

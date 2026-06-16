@@ -28,7 +28,7 @@ The SDK is distributed as a `.tgz` tarball. You will receive a `fawry-softpos-sd
 npm install
 ```
 
-This unpacks the pre-built SDK into `node_modules/fawry-softpos-sdk/dist/`.
+This unpacks the pre-built SDK into `node_modules/fawry-softpos-web-sdk/dist/`.
 
 ---
 
@@ -39,7 +39,7 @@ This unpacks the pre-built SDK into `node_modules/fawry-softpos-sdk/dist/`.
 Add the script to your HTML page:
 
 ```html
-<script src="node_modules/fawry-softpos-sdk/dist/fawry-softpos-sdk.js"></script>
+<script src="node_modules/fawry-softpos-web-sdk/dist/fawry-softpos-sdk.js"></script>
 ```
 
 The SDK exposes a global `FawrySDK` object on `window`.
