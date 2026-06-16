@@ -1,10 +1,10 @@
 {
-  "name": "fawry-softpos-sdk-docs-example",
+  "name": "fawry-softpos-web-sdk-docs-example",
   "version": "1.0.0",
   "private": true,
   "description": "Standalone third-party integration example for the Fawry SoftPOS Web SDK",
   "scripts": {
-    "start": "node server.js"
+    "start": "python3 -m http.server 8080"
   },
   "dependencies": {
     "fawry-softpos-web-sdk": "file:./fawry-softpos-web-sdk-1.0.0.tgz"

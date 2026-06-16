@@ -120,7 +120,7 @@ npm start
 This runs:
 
 ```bash
-node server.js
+python3 -m http.server 8080
 ```
 
 It only serves static files. It does not run a backend or proxy.
