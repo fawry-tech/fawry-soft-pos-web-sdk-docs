@@ -38,11 +38,11 @@ savePaymentPageState(sid, op);
 return builder.send();
 ```
 
-If the original payment page receives the raw SoftPOS callback query (`sid` or `sId`), route it to `callback.html` so there is a single callback handler:
+If the original payment page receives the raw SoftPOS callback query (`sId`), route it to `callback.html` so there is a single callback handler:
 
 ```javascript
 var urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('sid') || urlParams.get('sId')) {
+if (urlParams.get('sId')) {
     window.location.href = 'callback.html' + window.location.search;
 } else {
     consumeReturnedPaymentResult();
@@ -76,7 +76,8 @@ Create a `callback.html` file in your site root:
         function buildReturnUrl(result) {
             var target = result && result._callbackReturnUrl ? result._callbackReturnUrl : getPaymentPageUrl();
             var url = new URL(target, window.location.origin);
-            var sid = result && result.sid ? result.sid : new URLSearchParams(window.location.search).get('sId');
+            var query = new URLSearchParams(window.location.search);
+            var sid = result && result.sid ? result.sid : query.get('sId');
             if (sid) url.searchParams.set('fawrySid', sid);
             return url.toString();
         }
@@ -158,7 +159,7 @@ function consumeReturnedPaymentResult() {
 
 ## Auto-Callback Detection
 
-The SDK **automatically** calls `handleCallback()` when it detects `sid=` or `sId=` in the page URL. You don't need to call it manually in most cases, but calling it explicitly gives you access to the result Promise.
+The SDK **automatically** calls `handleCallback()` when it detects `sId=` in the page URL. You don't need to call it manually in most cases, but calling it explicitly gives you access to the result Promise.
 
 ---
 
