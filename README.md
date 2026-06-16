@@ -58,7 +58,7 @@ npm install
 ### 2. Load the SDK
 
 ```html
-<script src="node_modules/fawry-softpos-sdk/dist/fawry-softpos-sdk.js"></script>
+<script src="node_modules/fawry-softpos-web-sdk/dist/fawry-softpos-sdk.js"></script>
 ```
 
 Or with a bundler:

@@ -1,5 +1,5 @@
 {
-  "name": "fawry-softpos-sdk-docs-example",
+  "name": "fawry-softpos-web-sdk-docs-example",
   "version": "1.0.0",
   "private": true,
   "description": "Standalone third-party integration example for the Fawry SoftPOS Web SDK",

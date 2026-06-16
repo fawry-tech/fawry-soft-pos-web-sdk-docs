@@ -75,7 +75,7 @@ See [Backend Setup]({% link backend-setup.md %}) for the full server implementat
 ## Step 3: Load the SDK in Your Page
 
 ```html
-<script src="node_modules/fawry-softpos-sdk/dist/fawry-softpos-sdk.js"></script>
+<script src="node_modules/fawry-softpos-web-sdk/dist/fawry-softpos-sdk.js"></script>
 ```
 
 Verify it loaded:
@@ -157,7 +157,7 @@ Create a `callback.html` page that loads the SDK. The SDK **automatically** hand
 <body>
     <div id="loading">Processing...</div>
     <div id="result" style="display:none;"></div>
-    <script src="node_modules/fawry-softpos-sdk/dist/fawry-softpos-sdk.js"></script>
+    <script src="node_modules/fawry-softpos-web-sdk/dist/fawry-softpos-sdk.js"></script>
     <script>
         FawrySDK.handleCallback().then(function(result) {
             document.getElementById('loading').style.display = 'none';
