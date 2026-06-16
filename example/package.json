@@ -4,7 +4,7 @@
   "private": true,
   "description": "Standalone third-party integration example for the Fawry SoftPOS Web SDK",
   "scripts": {
-    "start": "python3 -m http.server 8080"
+    "start": "node server.js"
   },
   "dependencies": {
     "fawry-softpos-web-sdk": "file:./fawry-softpos-web-sdk-1.0.0.tgz"

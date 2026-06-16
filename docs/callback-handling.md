@@ -5,7 +5,7 @@ nav_order: 7
 
 # Callback Handling
 
-After the SoftPOS app processes a payment, it redirects the browser back to your **callback page**. The SDK handles parsing the response and making the result available to your original page.
+After the SoftPOS app processes a payment, it redirects the browser back to your **callback page**. The SDK handles parsing the response, stores the result, and lets your original payment page consume that result when the user is returned to it.
 
 ---
 
@@ -14,8 +14,40 @@ After the SoftPOS app processes a payment, it redirects the browser back to your
 1. Your original page calls `.send()`, which redirects to `softpos://open/payment?...`
 2. The SoftPOS Android app processes the transaction
 3. The app redirects the browser to your callback URL with the response in the query string
-4. The SDK on the callback page parses the response and stores it in `localStorage`
-5. The original page (if still open) detects the result via `localStorage` polling and resolves the Promise
+4. The callback page calls `FawrySDK.handleCallback()`, which parses the response and stores it in `localStorage`
+5. The callback page redirects back to the original payment page with `fawrySid`
+6. The original page consumes `fawry_result_{sid}`, displays the final status, removes the stored result, and cleans the URL
+
+---
+
+## Recommended Return Flow
+
+The example project uses two pages:
+
+- `index.html` starts the payment and later consumes the returned result.
+- `callback.html` receives the SoftPOS redirect, calls `FawrySDK.handleCallback()`, then returns the user to `index.html`.
+
+Before calling `.send()`, set your callback URL and save enough page state to restore the UI after the app returns:
+
+```javascript
+builder
+    // ... other setters ...
+    .setCallbackUrl(window.location.origin + window.location.pathname.replace(/\/index\.html$/, '') + '/callback.html');
+
+savePaymentPageState(sid, op);
+return builder.send();
+```
+
+If the original payment page receives the raw SoftPOS callback query (`sid` or `sId`), route it to `callback.html` so there is a single callback handler:
+
+```javascript
+var urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('sid') || urlParams.get('sId')) {
+    window.location.href = 'callback.html' + window.location.search;
+} else {
+    consumeReturnedPaymentResult();
+}
+```
 
 ---
 
@@ -35,8 +67,20 @@ Create a `callback.html` file in your site root:
     <div id="loading">Processing...</div>
     <div id="result" style="display:none;"></div>
 
-    <script src="node_modules/fawry-softpos-sdk/dist/fawry-softpos-sdk.js"></script>
+    <script src="node_modules/fawry-softpos-web-sdk/dist/fawry-softpos-sdk.js"></script>
     <script>
+        function getPaymentPageUrl() {
+            return window.location.origin + window.location.pathname.replace(/\/callback\.html$/, '/index.html');
+        }
+
+        function buildReturnUrl(result) {
+            var target = result && result._callbackReturnUrl ? result._callbackReturnUrl : getPaymentPageUrl();
+            var url = new URL(target, window.location.origin);
+            var sid = result && result.sid ? result.sid : new URLSearchParams(window.location.search).get('sId');
+            if (sid) url.searchParams.set('fawrySid', sid);
+            return url.toString();
+        }
+
         FawrySDK.handleCallback().then(function(result) {
             var loadingEl = document.getElementById('loading');
             var resultEl = document.getElementById('result');
@@ -53,17 +97,12 @@ Create a `callback.html` file in your site root:
                 resultEl.style.color = 'red';
             }
 
-            // The SDK stores the result in localStorage for cross-tab communication.
-            // If result._storedForCrossTab is true, the original tab will automatically
-            // pick up the result. You can close this page or redirect back:
-            if (result._storedForCrossTab) {
+            // The SDK stores the result in localStorage as fawry_result_<sid>.
+            // Return to the original payment page with fawrySid so it can consume it.
+            if (result._storedForCrossTab || result._callbackReturnUrl) {
                 setTimeout(function() {
-                    window.close();
-                    // If window.close() doesn't work, redirect to your main page:
-                    setTimeout(function() {
-                        window.location.replace('/index.html');
-                    }, 100);
-                }, 2000);
+                    window.location.replace(buildReturnUrl(result));
+                }, 300);
             }
         });
     </script>
@@ -71,7 +110,49 @@ Create a `callback.html` file in your site root:
 </html>
 ```
 
-The callback page detects the operation type from the response (`purchase`, `refund`, `void`, `inquiry`) and can display flow-specific messages accordingly.
+The full example in `example/callback.js` also handles tab behavior. If the browser opens the callback in a new tab, it tries to focus and close that tab when possible. If closing is not allowed by the browser, it redirects that tab back to the payment page.
+
+```javascript
+var focusedOpener = focusOriginalPaymentWindow();
+if (focusedOpener) {
+    window.close();
+} else {
+    window.location.replace(getPaymentPageUrl());
+}
+```
+
+The callback page can detect the operation type from the response (`purchase`, `refund`, `void`, `inquiry`) and display flow-specific messages while returning the user to the payment page.
+
+---
+
+## Consuming the Returned Result
+
+On the original payment page, read the `fawrySid` query parameter, load the SDK result from `localStorage`, recreate the correct result object, display the status, then remove the temporary data:
+
+```javascript
+function consumeReturnedPaymentResult() {
+    var params = new URLSearchParams(window.location.search);
+    var sid = params.get('fawrySid');
+    if (!sid) return false;
+
+    var restoredOp = restorePaymentPageState(readPaymentPageState()) || getSelectedOp();
+    var resultKey = 'fawry_result_' + sid;
+    var resultData = localStorage.getItem(resultKey);
+    if (!resultData) {
+        showStatus('Returned from SoftPOS, but no callback result was found for session ' + sid, 'error');
+        return true;
+    }
+
+    var result = createResultFromStoredData(JSON.parse(resultData));
+    localStorage.removeItem(resultKey);
+    clearPaymentPageState();
+    showPaymentResult(restoredOp, result);
+    window.history.replaceState({}, document.title, window.location.pathname);
+    return true;
+}
+```
+
+`window.history.replaceState()` removes `fawrySid` from the address bar after the result is consumed, so refreshing the page does not process the same result again.
 
 ---
 
@@ -102,9 +183,10 @@ The payment flow involves a page redirect, so the original tab may lose its Java
 
 1. **Before redirect:** The original page stores session data and sets up a `localStorage` poll.
 2. **On callback:** The callback page stores the result in `localStorage` with key `fawry_result_{sid}`.
-3. **Original tab:** Detects the new `localStorage` entry (via `storage` event or polling every 500ms) and resolves the pending Promise.
+3. **Original tab still open:** Detects the new `localStorage` entry (via `storage` event or polling every 500ms) and resolves the pending Promise.
+4. **Original page reloaded or returned to later:** Uses `fawrySid` and `consumeReturnedPaymentResult()` to restore and display the result.
 
-This means your original page's `.send()` Promise will resolve even though the browser was redirected to the SoftPOS app and back.
+This means your integration can handle both browser behaviors: same-tab reloads and callbacks opened in a new tab. The browser/Android system controls which behavior happens, so the web SDK cannot guarantee no tab or no reload, but the callback/result handoff keeps the final payment status available to the merchant page.
 
 ---
 
